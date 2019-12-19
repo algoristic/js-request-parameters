@@ -1,6 +1,6 @@
 # js-request-parameters
 
-Manipulate request parametes with vanilla JS (no jQuery needed).
+Manipulate request parametes with vanilla JS (*no* jQuery).
 
 ## Getting started
 
