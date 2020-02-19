@@ -16,21 +16,21 @@ window.addEventListener('popstate', () => {
     window.dispatchEvent(new Event('locationchange'));
 });
 
-class RequstParam {
+class UrlParam {
     constructor(key, paramValue) {
         this.key = key;
         this.paramValue = paramValue;
         this.callbacks = [];
     }
     onChange(callback) {
-        if(RequstParams.util.isValid(callback)) {
+        if(UrlParams.util.isValid(callback)) {
             this.callbacks.push(callback);
         } else {
-            RequstParams.util.logger.error('could not register invalid (undefined) callback on param: ' + key);
+            UrlParams.util.logger.error('could not register invalid (undefined) callback on param: ' + key);
         }
     }
     value(value, options) {
-        if(RequstParams.util.isValid(value)) {
+        if(UrlParams.util.isValid(value)) {
             this.changeValue((params) => {
                 params.set(this.key, value);
             }, options);
@@ -43,14 +43,14 @@ class RequstParam {
     }
     check(options) {
         let isSet = (this.paramValue !== undefined);
-        if(RequstParams.util.isValid(options)) {
+        if(UrlParams.util.isValid(options)) {
             let { callbackIfExists, callbackIfNotExists } = options;
             if(isSet) {
-                if(RequstParams.util.isValid(callbackIfExists)) {
+                if(UrlParams.util.isValid(callbackIfExists)) {
                     callbackIfExists(this.paramValue);
                 }
             } else {
-                if(RequstParams.util.isValid(callbackIfNotExists)) {
+                if(UrlParams.util.isValid(callbackIfNotExists)) {
                     callbackIfNotExists();
                 }
             }
@@ -64,10 +64,10 @@ class RequstParam {
         }, options);
     }
     changeValue(valueChangeFunction, options) {
-        let params = RequstParams.util.getQueryParams();
+        let params = UrlParams.util.getQueryParams();
         valueChangeFunction(params);
-        let { fn, state, title, callback } = RequstParams.util.parseValueChangeOptions(options);
-        let queryString = RequstParams.util.getQueryString(params);
+        let { fn, state, title, callback } = UrlParams.util.parseValueChangeOptions(options);
+        let queryString = UrlParams.util.getQueryString(params);
         fn.apply(history, [state, title, queryString]);
         callback();
     }
@@ -78,24 +78,24 @@ class RequstParam {
     }
 }
 
-const RequstParams = {
+const UrlParams = {
     init: (options) => {
-        RequstParams.params.load(options);
+        UrlParams.params.load(options);
         window.addEventListener('locationchange', () => {
-            RequstParams.params.load(options);
+            UrlParams.params.load(options);
         })
         return {
             get: (key) => {
-                return RequstParams.params.getParam(key, options);
+                return UrlParams.params.getParam(key, options);
             }
         }
     },
     params: {
         values: {},
         load: (options) => {
-            let params = RequstParams.util.getQueryParams();
+            let params = UrlParams.util.getQueryParams();
             for(const [key, value] of params) {
-                let param = RequstParams.params.getParam(key);
+                let param = UrlParams.params.getParam(key);
                 if(param.paramValue !== value) {
                     let oldValue = param.paramValue;
                     param.paramValue = value;
@@ -104,10 +104,10 @@ const RequstParams = {
             }
         },
         getParam: (key, options) => {
-            let param = RequstParams.params.values[key];
+            let param = UrlParams.params.values[key];
             if(param === undefined) {
-                param = RequstParams.util.createRequestParam(key)
-                RequstParams.params.values[key] = param;
+                param = UrlParams.util.createUrlParam(key)
+                UrlParams.params.values[key] = param;
             }
             return param;
         }
@@ -116,47 +116,31 @@ const RequstParams = {
         isValid: (any) => {
             return (typeof any !== 'undefined');
         },
-        createRequestParam: (key) => {
-            let params = RequstParams.util.getQueryParams();
+        createUrlParam: (key) => {
+            let params = UrlParams.util.getQueryParams();
             let value;
             if(params.has(key)) {
                 value = params.get(key);
             } else {
                 value = undefined;
             }
-            return new RequstParam(key, value);
+            return new UrlParam(key, value);
         },
         parseValueChangeOptions: (options) => {
-            let defaultMode = 'push';
-            let mode, state, title, callback;
-            if(RequstParams.util.isValid(options)) {
-                ({ mode, state, title, callback } = options);
+            let push, state, title, callback;
+            if(UrlParams.util.isValid(options)) {
+                ({ push, state, title, callback } = options);
             }
-            if(!RequstParams.util.isValid(mode)) {
-                mode = defaultMode;
-            }
-            let fn;
-            switch(mode) {
-                case 'replace':
-                    fn = history.replaceState;
-                    break;
-                case 'push':
-                default:
-                    fn = history.pushState;
-                    if(mode !== 'push') {
-                        RequstParams.util.logger.error(`unknown value-change mode (mode='${mode})' - use default (default='${defaultMode}')`);
-                    }
-                    break;
-            }
-            if(!RequstParams.util.isValid(state)) {
+            let fn = (push || (push == 'true')) ? history.pushState : history.replaceState;
+            if(!UrlParams.util.isValid(state)) {
                 state = {
                     state: 'default'
                 };
             }
-            if(!RequstParams.util.isValid(title)) {
+            if(!UrlParams.util.isValid(title)) {
                 title = '';
             }
-            if(!RequstParams.util.isValid(callback)) {
+            if(!UrlParams.util.isValid(callback)) {
                 callback = () => {};
             }
             return {
@@ -179,14 +163,19 @@ const RequstParams = {
         },
         logger: {
             info: (msg) => {
-                RequstParams.util.logger.log('INFO', msg);
+                UrlParams.util.logger.log('INFO', msg);
             },
             error: (msg) => {
-                RequstParams.util.logger.log('ERROR', msg);
+                UrlParams.util.logger.log('ERROR', msg);
             },
             log: (priority, msg) => {
                 console.log(`[${priority}] ${msg}`);
             }
         }
     }
+}
+
+const defaultUrlParamsInstance = UrlParams.init();
+urlParam = (key) => {
+    return defaultUrlParamsInstance.get(key);
 }
