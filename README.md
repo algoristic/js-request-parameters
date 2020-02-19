@@ -81,8 +81,8 @@ for(key of [ 'count', 'msg', 'foo' ]) {
 
 |Method|Description|
 |---|---|
-|`value(` `)`|Returns the value of the parameter or `undefined` if it is not set.|
-|`value(` _value_ `)`|Sets the value of the parameter, if _value !== undefined_ (use `UrlParam::remove` for that purpose).|
+|`value(`&nbsp;`)`|Returns the value of the parameter or `undefined` if it is not set.|
+|`value(`&nbsp;_value_&nbsp;`)`|Sets the value of the parameter, if _value !== undefined_ (use `UrlParam::remove` for that purpose).|
 |`value(` _value_, _options_ `)`|The **UrlParam API** makes use of the [History API](https://developer.mozilla.org/en-US/docs/Web/API/History_API). If you are already familiar to manipulate the states via `history.pushState` and `history.replaceState` you can directly affect the way the **UrlParam API** sets the parameter values, for a greater control over the browser behaviour. The _options_ object can consist of the following values:<br>|
 |`isSet(` `)`||
 |`remove(` `)`||
