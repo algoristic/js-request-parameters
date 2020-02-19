@@ -31,14 +31,9 @@ class RequstParam {
     }
     value(value, options) {
         if(RequstParams.util.isValid(value)) {
-            let queryString = window.location.search;
-            queryString = queryString.startsWith('?') ? queryString.slice(1) : queryString;
-            let currentParams = new URLSearchParams(queryString);
-            currentParams.set(this.key, value);
-            let { fn, state, title, callback } = RequstParams.util.parseValueChangeOptions(options);
-            queryString = currentParams.toString();
-            fn.apply(history, [state, title, `?${queryString}`]);
-            callback();
+            this.changeValue((params) => {
+                params.set(this.key, value);
+            }, options);
         } else {
             return this.paramValue;
         }
@@ -62,6 +57,20 @@ class RequstParam {
         }
         return isSet;
     }
+    remove(options) {
+        this.changeValue((params) => {
+            params.delete(this.key);
+            this.paramValue = undefined;
+        }, options);
+    }
+    changeValue(valueChangeFunction, options) {
+        let params = RequstParams.util.getQueryParams();
+        valueChangeFunction(params);
+        let { fn, state, title, callback } = RequstParams.util.parseValueChangeOptions(options);
+        let queryString = RequstParams.util.getQueryString(params);
+        fn.apply(history, [state, title, queryString]);
+        callback();
+    }
     dispatchChange(newValue, oldValue, key) {
         this.callbacks.forEach(function(callback) {
             callback(newValue, oldValue, key);
@@ -84,7 +93,7 @@ const RequstParams = {
     params: {
         values: {},
         load: (options) => {
-            let params = new URLSearchParams(window.location.search);
+            let params = RequstParams.util.getQueryParams();
             for(const [key, value] of params) {
                 let param = RequstParams.params.getParam(key);
                 if(param.paramValue !== value) {
@@ -108,7 +117,7 @@ const RequstParams = {
             return (typeof any !== 'undefined');
         },
         createRequestParam: (key) => {
-            let params = new URLSearchParams(window.location.search);
+            let params = RequstParams.util.getQueryParams();
             let value;
             if(params.has(key)) {
                 value = params.get(key);
@@ -156,6 +165,17 @@ const RequstParams = {
                 title: title,
                 callback: callback
             };
+        },
+        getQueryParams: () => {
+            let queryString = window.location.search;
+            queryString = queryString.startsWith('?') ? queryString.slice(1) : queryString;
+            return new URLSearchParams(queryString);
+        },
+        getQueryString: (params) => {
+            let baseAddress = window.location.pathname;
+            let queryString = params.toString();
+            queryString = (queryString.length > 0) ? `${baseAddress}?${queryString}` : `${baseAddress}`;
+            return queryString;
         },
         logger: {
             info: (msg) => {
