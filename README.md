@@ -4,7 +4,7 @@ Manipulate URL parameters with vanilla JS (*no* jQuery needed).
 
 ## Getting started
 
-Just add requestParams.js to your page and you are ready to go, no other dependecies required.
+Just add js-url-paramters.js to your page and you are ready to go, no other dependecies required.
 
 ## Examples
 
