@@ -133,9 +133,7 @@ const UrlParams = {
             }
             let fn = (push || (push == 'true')) ? history.pushState : history.replaceState;
             if(!UrlParams.util.isValid(state)) {
-                state = {
-                    state: 'default'
-                };
+                state = {};
             }
             if(!UrlParams.util.isValid(title)) {
                 title = '';
